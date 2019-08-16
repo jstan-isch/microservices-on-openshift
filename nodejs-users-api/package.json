@@ -2,8 +2,7 @@
   "name": "nodejs-users-api",
   "main": "server.js",
    "scripts": {
-        "build": "node server.js",
-        "test": "standard"
+        "build": "node server.js"
     },
   "dependencies": {
     "body-parser": "^1.15.0",
