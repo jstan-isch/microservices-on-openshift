@@ -2,7 +2,7 @@
   "name": "nodejs-users-api",
   "main": "server.js",
    "scripts": {
-        "build": "node app.js",
+        "build": "node server.js",
         "test": "standard"
     },
   "dependencies": {
