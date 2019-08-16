@@ -3,6 +3,7 @@ var mongoServiceName = process.env.DATABASE_SERVICE_NAME;
 var mongoHost = process.env[mongoServiceName + "_SERVICE_HOST"];
 var mongoPort = process.env[mongoServiceName + "_SERVICE_PORT"];
 //console.log("mongohost:port ="+mongoHost+":"+mongoPort);
+console.log(mongoServiceName);
 console.log(mongoHost);
 console.log(mongoPort);
 console.log(process.env.MONGODB_USER);
