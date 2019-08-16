@@ -1,10 +1,8 @@
 var mongoServiceName = process.env.DATABASE_SERVICE_NAME;
-var port = 8080;
-var ip   = '0.0.0.0' ;
-
+var port = 8081;
 var mongoHost = process.env[mongoServiceName + "_SERVICE_HOST"];
 var mongoPort = process.env[mongoServiceName + "_SERVICE_PORT"];
-console.log("mongohost:port ="+mongoHost+":"+mongoPort);
+//console.log("mongohost:port ="+mongoHost+":"+mongoPort);
 module.exports = {
 	'secret': 'saregama',
 	//'database':'mongodb://localhost/demo'
