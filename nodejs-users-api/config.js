@@ -1,6 +1,6 @@
-var m = process.env.DATABASE_SERVICE_NAME;
-var mongoHost = process.env[m + "_SERVICE_HOST"];
-var mongoPort = process.env[m + "_SERVICE_PORT"];
+var mongoServiceName = process.env.DATABASE_SERVICE_NAME;
+var mongoHost = process.env[mongoServiceName + "_SERVICE_HOST"];
+var mongoPort = process.env[mongoServiceName + "_SERVICE_PORT"];
 console.log("mongohost:port ="+mongoHost+":"+mongoPort);
 module.exports = {
 	'secret': 'saregama',
