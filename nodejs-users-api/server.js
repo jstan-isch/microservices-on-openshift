@@ -1,125 +1,161 @@
-//  OpenShift sample Node application
-var express = require('express'),
-    app     = express(),
-    morgan  = require('morgan');
-    
-Object.assign=require('object-assign')
+var express 	= require('express');
+var app         = express();
+var bodyParser  = require('body-parser');
+var morgan      = require('morgan');
+var mongoose    = require('mongoose');
 
-app.engine('html', require('ejs').renderFile);
-app.use(morgan('combined'))
+var jwt    = require('jsonwebtoken'); 
+var config = require('./config'); 
+var User   = require('./app/models/user'); 
+var cors = require('cors');
 
-var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
-    ip   = process.env.IP   || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0',
-    mongoURL = process.env.OPENSHIFT_MONGODB_DB_URL || process.env.MONGO_URL,
-    mongoURLLabel = "";
+request = require('request-json');
 
-if (mongoURL == null) {
-  var mongoHost, mongoPort, mongoDatabase, mongoPassword, mongoUser;
-  // If using plane old env vars via service discovery
-  if (process.env.DATABASE_SERVICE_NAME) {
-    var mongoServiceName = process.env.DATABASE_SERVICE_NAME.toUpperCase();
-    mongoHost = process.env[mongoServiceName + '_SERVICE_HOST'];
-    mongoPort = process.env[mongoServiceName + '_SERVICE_PORT'];
-    mongoDatabase = process.env[mongoServiceName + '_DATABASE'];
-    mongoPassword = process.env[mongoServiceName + '_PASSWORD'];
-    mongoUser = process.env[mongoServiceName + '_USER'];
+var client = request.createClient(process.env.EMAIL_APPLICATION_DOMAIN);
 
-  // If using env vars from secret from service binding  
-  } else if (process.env.database_name) {
-    mongoDatabase = process.env.database_name;
-    mongoPassword = process.env.password;
-    mongoUser = process.env.username;
-    var mongoUriParts = process.env.uri && process.env.uri.split("//");
-    if (mongoUriParts.length == 2) {
-      mongoUriParts = mongoUriParts[1].split(":");
-      if (mongoUriParts && mongoUriParts.length == 2) {
-        mongoHost = mongoUriParts[0];
-        mongoPort = mongoUriParts[1];
-      }
-    }
-  }
+var port = process.env.PORT || 8080; 
+mongoose.connect(config.database); 
+app.set('superSecret', config.secret); 
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 
-  if (mongoHost && mongoPort && mongoDatabase) {
-    mongoURLLabel = mongoURL = 'mongodb://';
-    if (mongoUser && mongoPassword) {
-      mongoURL += mongoUser + ':' + mongoPassword + '@';
-    }
-    // Provide UI label that excludes user id and pw
-    mongoURLLabel += mongoHost + ':' + mongoPort + '/' + mongoDatabase;
-    mongoURL += mongoHost + ':' +  mongoPort + '/' + mongoDatabase;
-  }
-}
-var db = null,
-    dbDetails = new Object();
 
-var initDb = function(callback) {
-  if (mongoURL == null) return;
+app.use(morgan('dev'));
 
-  var mongodb = require('mongodb');
-  if (mongodb == null) return;
+app.use(cors());
 
-  mongodb.connect(mongoURL, function(err, conn) {
-    if (err) {
-      callback(err);
-      return;
-    }
 
-    db = conn;
-    dbDetails.databaseName = db.databaseName;
-    dbDetails.url = mongoURLLabel;
-    dbDetails.type = 'MongoDB';
 
-    console.log('Connected to MongoDB at: %s', mongoURL);
-  });
-};
+app.get('/setup', function(req, res) {
 
-app.get('/', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    var col = db.collection('counts');
-    // Create a document with request IP and current time of request
-    col.insert({ip: req.ip, date: Date.now()});
-    col.count(function(err, count){
-      if (err) {
-        console.log('Error running count. Message:\n'+err);
-      }
-      res.render('index.html', { pageCountMessage : count, dbInfo: dbDetails });
-    });
-  } else {
-    res.render('index.html', { pageCountMessage : null});
-  }
+	
+	var nick = new User({ 
+		username: 'demo', 
+		password: 'demo',
+		admin: true 
+	});
+	nick.save(function(err) {
+		if (err) throw err;
+		console.log('User saved successfully');
+		res.json({ success: true });
+	});
 });
 
-app.get('/pagecount', function (req, res) {
-  // try to initialize the db on every request if it's not already
-  // initialized.
-  if (!db) {
-    initDb(function(err){});
-  }
-  if (db) {
-    db.collection('counts').count(function(err, count ){
-      res.send('{ pageCount: ' + count + '}');
-    });
-  } else {
-    res.send('{ pageCount: -1 }');
-  }
+
+app.get('/', function(req, res) {
+	res.send('API Works!');
 });
 
-// error handling
-app.use(function(err, req, res, next){
-  console.error(err.stack);
-  res.status(500).send('Something bad happened!');
+var apiRoutes = express.Router(); 
+
+
+apiRoutes.post('/authenticate', function(req, res) {
+
+	// find the user
+	User.findOne({
+		username: req.body.username,
+		password: req.body.password
+	}, function(err, user) {
+
+		if (err) throw err;
+
+		if (!user) {
+			res.json({ success: false, message: 'Authentication failed. User not found.' });
+		} else if (user) {
+
+			// check if password matches
+			if (user.password != req.body.password) {
+				res.json({ success: false, message: 'Authentication failed. Wrong password.' });
+			} else {
+
+				// if user is found and password is right
+				// create a token
+				var token = jwt.sign(user, app.get('superSecret'), {
+					expiresIn: 86400 // expires in 24 hours
+				});
+
+				res.json({
+					success: true,
+					message: 'Enjoy your token!',
+					token: token
+				});
+			}		
+
+		}
+
+	});
 });
 
-initDb(function(err){
-  console.log('Error connecting to Mongo. Message:\n'+err);
+
+apiRoutes.use(function(req, res, next) {
+
+	
+	var token = req.body.token || req.param('token') || req.headers['x-access-token'];
+
+	
+	if (token) {
+
+		
+		jwt.verify(token, app.get('superSecret'), function(err, decoded) {			
+			if (err) {
+				return res.json({ success: false, message: 'Failed to authenticate token.' });		
+			} else {
+				
+				req.decoded = decoded;	
+				next();
+			}
+		});
+
+	} else {
+
+		
+		return res.status(403).send({ 
+			success: false, 
+			message: 'No token provided.'
+		});
+		
+	}
+	
 });
 
-app.listen(port, ip);
-console.log('Server running on http://%s:%s', ip, port);
+apiRoutes.get('/', function(req, res) {
+	res.json({ message: 'All Good!' });
+});
 
-module.exports = app ;
+app.post('/users', function(req, res) {
+	var u = req.body;
+	console.log('userobj',u,'email=',process.env.EMAIL_APPLICATION_DOMAIN);
+	u.admin=false;
+	var usr = new User(u);
+	console.log(usr);
+	usr.save(function(err,data) {
+		if (err) throw err;
+		data = {
+			msg: "Signup complete!",
+			subject: "Registration",
+			to: req.body.email
+		}
+		console.log('data',data);
+		client.post('/email/', data, function(err, response, body) {
+  			console.log('email sent!');	
+		});
+	});
+	res.json({ success: true });
+});
+
+apiRoutes.get('/users', function(req, res) {
+	User.find({},{username:1,email:1,twitterId:1}, function(err, users) {
+		res.json(users);
+	});
+});
+
+apiRoutes.get('/check', function(req, res) {
+	res.json(req.decoded);
+});
+
+app.use('/api', apiRoutes);
+
+
+app.listen(port);
+console.log('Magic happens at http://localhost:' + port);
+console.log(process.ENV);
