@@ -35,14 +35,14 @@ class EmailResource(object):
         resp.status = falcon.HTTP_202
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        server.login(os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), os.getenv('GMAIL_PASSWORD', 'Refresh@2015'))
+        server.login('janepelladinesh97@gmail.com', '9000795104')
         msg = email_req['msg']
-        server.sendmail(os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), email_req['to'], msg)
+        server.sendmail('janepelladinesh97@gmail.com', email_req['to'], msg)
         server.quit()
         config = {
-          'user': os.getenv('MYSQL_USER', 'root'),
-          'password': os.getenv('MYSQL_PASSWORD', ''),
-          'host': os.getenv('MYSQL_SERVICE_HOST', 'localhost'),
+          'user': os.getenv('MYSQL_USER', 'app_user'),
+          'password': os.getenv('MYSQL_PASSWORD', 'password'),
+          'host': os.getenv('MYSQL_SERVICE_HOST', 'MYSQL'),
           'db': os.getenv('MYSQL_DATABASE', 'microservices'),
           'cursorclass': pymysql.cursors.DictCursor,
         }
@@ -53,7 +53,7 @@ class EmailResource(object):
                        "(from_add, to_add, subject, body, created_at) "
                        "VALUES (%s, %s, %s, %s, %s)")
 
-                data_email = (os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), email_req['to'], 'New registration',msg, datetime.now())
+                data_email = ('janepelladinesh97@gmail.com', email_req['to'], 'New registration',msg, datetime.now())
                 cursor.execute(add_email, data_email)
                 connection.commit()
                 #create table emails (from_add varchar(40), to_add varchar(40), subject varchar(40), body varchar(200), created_at date);
