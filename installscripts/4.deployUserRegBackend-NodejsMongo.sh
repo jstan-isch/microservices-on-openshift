@@ -2,7 +2,7 @@ oc project $OSE_SERVICES_PROJECT
 
 export EMAIL_SERVICE_URL="http://emailsvc."$OSE_INFRA_PROJECT":8080"
 
-oc new-app -e MONGODB_USER=mongouser MONGODB_PASSWORD=password \
+oc new-app -e MONGODB_USER=mongouser MONGODB_PASSWORD=password DATABASE_SERVICE_NAME=mongodb \
 MONGODB_DATABASE=userdb MONGODB_ADMIN_PASSWORD=password \
   registry.access.redhat.com/rhscl/mongodb-26-rhel7 \
 --name mongodb -l microservice=userregsvc
