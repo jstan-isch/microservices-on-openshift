@@ -14,16 +14,7 @@ request = require('request-json');
 var client = request.createClient(process.env.EMAIL_APPLICATION_DOMAIN);
 
 var port = process.env.PORT || 8080; 
-  var mongoHost, mongoPort, mongoDatabase, mongoPassword, mongoUser;
-  // If using plane old env vars via service discovery
-  if (process.env.DATABASE_SERVICE_NAME) {
-    var mongoServiceName = process.env.DATABASE_SERVICE_NAME.toUpperCase();
-    mongoHost = process.env[mongoServiceName + '_SERVICE_HOST'];
-    mongoPort = process.env[mongoServiceName + '_SERVICE_PORT'];
-    mongoDatabase = process.env[mongoServiceName + '_DATABASE'];
-    mongoPassword = process.env[mongoServiceName + '_PASSWORD'];
-    mongoUser = process.env[mongoServiceName + '_USER'];
-	  console.log("mongohost:port ="+mongoHost+":"+mongoPort); }
+
 mongoose.connect(config.database); 
 app.set('superSecret', config.secret); 
 app.use(bodyParser.urlencoded({ extended: false }));
