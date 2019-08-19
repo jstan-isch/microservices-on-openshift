@@ -51,18 +51,7 @@ finally:
 
 
 class EmailResource(object):
-    def on_get(self, req, resp):
-        """Handles GET requests"""
-        resp.status = falcon.HTTP_200
-        resp.body = 'Email API 2'
-    def on_post(self, req, resp):
-        """Handles POST requests"""
-        try:
-            raw_json = req.stream.read().decode('utf-8')
-        except Exception as ex:
-            raise falcon.HTTPError(falcon.HTTP_400,
-                'Error',
-                ex.message)
+
  
         try:
             email_req = json.loads(raw_json)
@@ -78,17 +67,7 @@ class EmailResource(object):
         server.login('janepelladinesh97@gmail.com', '9000795104')
         msg = email_req['msg']
         server.sendmail('janepelladinesh97@gmail.com', email_req['to'], msg)
-        server.quit()
-        config = {
-          'user': os.getenv('MYSQL_USER', 'app_user'),
-          'password': os.getenv('MYSQL_PASSWORD', 'password'),
-          'host': os.getenv('MYSQL_SERVICE_HOST', 'mysql-2-hblq2'),
-          'db': os.getenv('MYSQL_DATABASE', 'microservices'),
-          'cursorclass': pymysql.cursors.DictCursor,
-        }
-    
         
-        connection = pymysql.connect(**config)
         try:
             connection = mysql.connector.connect(host='mysql',
                                          database='microservices',
@@ -104,6 +83,7 @@ class EmailResource(object):
         finally:
             connection.close()
         resp.body = json.dumps(email_req)
+        print("message sent")
 
 api = falcon.API()
 api.add_route('/email', EmailResource())
