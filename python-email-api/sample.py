@@ -42,7 +42,7 @@ class EmailResource(object):
         config = {
           'user': os.getenv('MYSQL_USER', 'app_user'),
           'password': os.getenv('MYSQL_PASSWORD', 'password'),
-          'host': os.getenv('MYSQL_SERVICE_HOST', 'MYSQL'),
+          'host': os.getenv('MYSQL_SERVICE_HOST', 'mysql-2-hblq2'),
           'db': os.getenv('MYSQL_DATABASE', 'microservices'),
           'cursorclass': pymysql.cursors.DictCursor,
         }
