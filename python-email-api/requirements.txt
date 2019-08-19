@@ -2,3 +2,4 @@ email
 falcon
 gunicorn
 PyMySQL
+mysql
