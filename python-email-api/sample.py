@@ -14,7 +14,7 @@ from mysql.connector import Error
 
 
 
-
+'''
 try:
     connection = mysql.connector.connect(host='mysql',
                                          database='microservices',
@@ -45,7 +45,7 @@ finally:
         connection.close()
         print("MySQL connection is closed")
 
-
+'''
 
 
 
@@ -90,14 +90,16 @@ class EmailResource(object):
         
         connection = pymysql.connect(**config)
         try:
-            with connection.cursor() as cursor:
-                add_email = ("INSERT INTO emails "
-                       "(from_add, to_add, subject, body, created_at) "
-                       "VALUES (%s, %s, %s, %s, %s)")
-
-                data_email = ('janepelladinesh97@gmail.com', email_req['to'], 'New registration',msg, datetime.now())
-                cursor.execute(add_email, data_email)
-                connection.commit()
+            connection = mysql.connector.connect(host='mysql',
+                                         database='microservices',
+                                         user='app_user',
+                                         password='password')
+            mycursor = connection.cursor()
+            sql="INSERT INTO emails (from_add, to_add, subject, body, created_at) VALUES (%s, %s, %s, %s, %s)"
+            val=('janepelladinesh97@gmail.com',email_req['to'], 'New registration',msg, datetime.now())
+            mycursor.execute(sql, val)
+            connection.commit()
+            print(mycursor.rowcount, "record inserted.")    
                 #create table emails (from_add varchar(40), to_add varchar(40), subject varchar(40), body varchar(200), created_at date);
         finally:
             connection.close()
