@@ -2,4 +2,4 @@ email
 falcon
 gunicorn
 PyMySQL
-
+mysql-connector-python
