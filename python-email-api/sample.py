@@ -7,6 +7,46 @@ import pymysql.cursors
 import os
 from datetime import datetime
 from datetime import timedelta
+import mysql.connector
+from mysql.connector import Error
+
+
+
+
+
+'''
+try:
+    connection = mysql.connector.connect(host='mysql',
+                                         database='microservices',
+                                         user='app_user',
+                                         password='password')
+    if connection.is_connected():
+        db_Info = connection.get_server_info()
+        print("Connected to MySQL Server version ", db_Info)
+        cursor = connection.cursor()
+        cursor.execute("select database();")
+        record = cursor.fetchone()
+        print("Your connected to database: ", record)
+    mySql_Create_Table_Query = """CREATE TABLE Laptop ( 
+                             Id int(11) NOT NULL,
+                             Name varchar(250) NOT NULL,
+                             Price float NOT NULL,
+                             Purchase_date Date NOT NULL,
+                             PRIMARY KEY (Id)) """
+    cursor = connection.cursor()
+    result = cursor.execute(mySql_Create_Table_Query)
+    print("Laptop Table created successfully ")
+
+except Error as e:
+    print("Error while connecting to MySQL", e)
+finally:
+    if (connection.is_connected()):
+        cursor.close()
+        connection.close()
+        print("MySQL connection is closed")
+
+'''
+
 
 
 
@@ -35,31 +75,26 @@ class EmailResource(object):
         resp.status = falcon.HTTP_202
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        server.login(os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), os.getenv('GMAIL_PASSWORD', 'Refresh@2015'))
+        server.login('mail.com', '900104')
         msg = email_req['msg']
-        server.sendmail(os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), email_req['to'], msg)
-       
-        config = {
-          'user': os.getenv('MYSQL_USER', 'app_user'),
-          'password': os.getenv('MYSQL_PASSWORD', 'password'),
-          'host': os.getenv('MYSQL_SERVICE_HOST', 'mysql'),
-          'db': os.getenv('MYSQL_DATABASE', 'microservices'),
-          'cursorclass': pymysql.cursors.DictCursor,
-        }
-        connection = pymysql.connect(**config)
+        server.sendmail('l.com', email_req['to'], msg)
+        
         try:
-            with connection.cursor() as cursor:
-                add_email = ("INSERT INTO emails "
-                       "(from_add, to_add, subject, body, created_at) "
-                       "VALUES (%s, %s, %s, %s, %s)")
-
-                data_email = (os.getenv('GMAIL_USERNAME', 'node2test@gmail.com'), email_req['to'], 'New registration',msg, datetime.now())
-                cursor.execute(add_email, data_email)
-                connection.commit()
+            connection = mysql.connector.connect(host='mysql',
+                                         database='microservices',
+                                         user='app_user',
+                                         password='password')
+            mycursor = connection.cursor()
+            sql="INSERT INTO emails (from_add, to_add, subject, body, created_at) VALUES (%s, %s, %s, %s, %s)"
+            val=('janepelladinesh97@gmail.com','email_req['to']', 'New registration','msg', datetime.now())
+            mycursor.execute(sql, val)
+            connection.commit()
+            #print(mycursor.rowcount, "record inserted.")    
                 #create table emails (from_add varchar(40), to_add varchar(40), subject varchar(40), body varchar(200), created_at date);
         finally:
             connection.close()
         resp.body = json.dumps(email_req)
+        #print("message sent")
 
 api = falcon.API()
 api.add_route('/email', EmailResource())
