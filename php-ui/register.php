@@ -17,7 +17,7 @@
     <div class="form-group">
         <div class="row">
             <div class="col-sm-6 col-sm-offset-3">
-                <input type="button" name="register-submit" ng-click="register()" id="register-submit" tabindex="5" class="form-control btn btn-register" value="Register Now">
+                <input type="button" name="register-submit" ng-click="register()" id="register-submit" tabindex="5" class="form-control btn btn-register" value="Hurry and Register Now">
             </div>
         </div>
     </div>
